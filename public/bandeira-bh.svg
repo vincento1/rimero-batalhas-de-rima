@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200" width="300" height="200">
+  <defs>
+    <clipPath id="curralClip">
+      <rect x="0" y="0" width="300" height="200" rx="4" />
+    </clipPath>
+  </defs>
+  <g clip-path="url(#curralClip)">
+    <!-- Céu Azul -->
+    <rect x="0" y="0" width="300" height="115" fill="#2563EB" />
+    
+    <!-- Raios de Sol -->
+    <g stroke="#FBBF24" stroke-width="4" opacity="0.9">
+      <line x1="150" y1="115" x2="150" y2="30" />
+      <line x1="150" y1="115" x2="195" y2="45" />
+      <line x1="150" y1="115" x2="230" y2="75" />
+      <line x1="150" y1="115" x2="105" y2="45" />
+      <line x1="150" y1="115" x2="70" y2="75" />
+      <line x1="150" y1="115" x2="245" y2="115" />
+      <line x1="150" y1="115" x2="55" y2="115" />
+    </g>
+
+    <!-- Sol Dourado Nascente -->
+    <circle cx="150" cy="115" r="42" fill="#F59E0B" />
+    <circle cx="150" cy="115" r="34" fill="#FDE047" />
+
+    <!-- Serra do Curral -->
+    <polygon points="0,125 50,118 100,105 140,96 175,108 230,100 270,112 300,116 300,200 0,200" fill="#15803D" />
+    <polygon points="0,135 60,126 120,116 160,112 210,120 260,114 300,125 300,200 0,200" fill="#166534" />
+    <polygon points="0,150 90,140 180,135 240,138 300,146 300,200 0,200" fill="#14532D" />
+
+    <!-- Letreiro sutil BH -->
+    <text x="150" y="185" font-family="system-ui, sans-serif" font-weight="900" font-size="16" fill="#F8FAFC" text-anchor="middle" letter-spacing="3">BELO HORIZONTE</text>
+  </g>
+  <rect x="0" y="0" width="300" height="200" fill="none" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="2" rx="4" />
+</svg>
