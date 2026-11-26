@@ -149,15 +149,23 @@ export function convites(p: Player): Battle[] {
     reputacao: "Toda a cidade",
   }));
 
-  // Pool local unindo as oficiais do estado e genéricas
-  const poolLocal = [...batalhasDoEstado.map((b) => ({
+  // Pool local unindo as oficiais do estado e genéricas (filtrando por compatibilidade de OVR)
+  const oficiaisMapeadas: Battle[] = batalhasDoEstado.map((b) => ({
     id: `oficial-${b.nome}`,
     nome: b.nome,
     nivel: clamp(b.nivelBase + r(-2, 2), 38, 92),
     local: `${b.cidade}, ${b.uf}`,
     uf: b.uf,
     reputacao: b.reputacao,
-  })), ...genericasDoEstado].sort(() => 0.5 - Math.random());
+  }));
+
+  const incluirGenericas = p.ovr < 62 || oficiaisMapeadas.length < 3;
+  const poolBruto = incluirGenericas ? [...oficiaisMapeadas, ...genericasDoEstado] : oficiaisMapeadas;
+  const compativeis = poolBruto.filter((b) => Math.abs(b.nivel - p.ovr) <= 14);
+  const poolBase = compativeis.length >= 2 ? compativeis : poolBruto;
+  const poolLocal = [...poolBase].sort(
+    (a, b) => (Math.abs(a.nivel - p.ovr) + r(-5, 5)) - (Math.abs(b.nivel - p.ovr) + r(-5, 5))
+  );
 
   // Adiciona opções do estado compatíveis com a progressão do MC
   for (const b of poolLocal) {
@@ -177,9 +185,9 @@ export function convites(p: Player): Battle[] {
     );
 
     if (batalhasOutroEstado.length > 0) {
-      // Prioriza batalhas reconhecidas de outros estados
+      // Prioriza batalhas reconhecidas e compatíveis com o OVR do MC
       const relevantes = batalhasOutroEstado.filter(
-        (b) => b.reputacao === "Nacional" || b.reputacao === "Estadual" || b.nivelBase >= p.ovr - 5
+        (b) => b.nivelBase >= p.ovr - 12 && (b.reputacao === "Nacional" || b.reputacao === "Estadual" || b.nivelBase >= p.ovr - 5)
       );
       const escolhida = pick(relevantes.length > 0 ? relevantes : batalhasOutroEstado);
       lista.push({
@@ -386,17 +394,19 @@ export type SeletivaConvite = {
 };
 
 export function checarSeletiva(p: Player, b: Battle): SeletivaConvite {
-  if (b.nivel < 40) {
+  if (p.historico.length === 0 || b.nivel < 40) {
     return {
       temSeletiva: false,
       chamado: false,
       nivelSeletiva: b.nivel,
-      motivo: "Esta batalha não tem seletiva para o Nacional.",
+      motivo: p.historico.length === 0
+        ? "Na 1ª temporada você ainda está se firmando na cena local."
+        : "Esta batalha não tem seletiva para o Nacional.",
     };
   }
 
-  // Nível da seletiva respeita o patamar da batalha
-  const nivelSeletiva = clamp(b.nivel + r(1, 3), 40, Math.min(90, p.ovr + 2));
+  // Nível da seletiva respeita o patamar da batalha (levemente equilibrado)
+  const nivelSeletiva = clamp(b.nivel + r(-2, 1), 38, Math.min(86, p.ovr));
   const anosDeCasa = p.historico.filter((h) => h.batalha === b.nome).length + 1;
 
   const difNivel = p.ovr - nivelSeletiva;
@@ -791,6 +801,14 @@ export function gerarTorneioDueloNacional(player: Player, anoPendente: Ano): Tor
     selecionadosParaDuelo.push(candidato);
   }
 
+  const penalidadeTitulo =
+    player.nacionaisGanhos === 0
+      ? 0
+      : player.nacionaisGanhos === 1
+      ? 3
+      : 5 + Math.min(3, player.nacionaisGanhos - 2);
+  const ovrEfetivoNacional = Math.max(30, anoPendente.ovr - penalidadeTitulo);
+
   const batalhas: BatalhaDueloNacional[] = [];
   let campeao = true;
   let faseAlcancada = "Grande Final";
@@ -800,13 +818,13 @@ export function gerarTorneioDueloNacional(player: Player, anoPendente: Ano): Tor
     const adv = selecionadosParaDuelo[i]!;
 
     // Simulação round a round simplificada: Ganhou (unânime) ou Ganhou (apertado)
-    const r1Venceu = Math.random() < chanceVitoria(anoPendente.ovr, adv.ovr);
+    const r1Venceu = Math.random() < chanceVitoria(ovrEfetivoNacional, adv.ovr);
     const unanimeR1 = Math.random() < 0.45;
     const narrativaR1 = r1Venceu
       ? `Ganhou (${unanimeR1 ? "unânime" : "apertado"})`
       : `${adv.nome} ganhou (${unanimeR1 ? "unânime" : "apertado"})`;
 
-    const r2Venceu = Math.random() < chanceVitoria(anoPendente.ovr, adv.ovr);
+    const r2Venceu = Math.random() < chanceVitoria(ovrEfetivoNacional, adv.ovr);
     const unanimeR2 = Math.random() < 0.45;
     const narrativaR2 = r2Venceu
       ? `Ganhou (${unanimeR2 ? "unânime" : "apertado"})`

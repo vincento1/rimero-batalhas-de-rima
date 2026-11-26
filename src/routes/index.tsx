@@ -261,10 +261,12 @@ function Jogo({
     seletiva: "batalha" | "direto";
     regional: "batalha" | "direto";
     estadual: "batalha" | "direto";
+    nacional: "batalha" | "direto";
   }>({
     seletiva: "batalha",
     regional: "batalha",
     estadual: "batalha",
+    nacional: "batalha",
   });
 
   const timerRef = useRef<number | null>(null);
@@ -884,14 +886,16 @@ function Jogo({
           <div className="flex items-start gap-3">
             <div
               className={`ovr relative overflow-hidden shrink-0 transition-colors duration-300 ${
-                displayOvr >= 90
+                displayOvr > 90
                   ? "!bg-purple-600 !text-white !border-purple-300/60 shadow-[0_0_15px_rgba(168,85,247,0.5)]"
-                  : displayOvr >= 80
-                  ? "!bg-cyan-500 !text-black !border-cyan-300/60"
-                  : displayOvr >= 65
+                  : displayOvr >= 86
+                  ? "!bg-cyan-400 !text-black !border-cyan-200/60"
+                  : displayOvr >= 78
                   ? "!bg-emerald-500 !text-black !border-emerald-300/60"
-                  : displayOvr >= 50
-                  ? "!bg-amber-500 !text-black !border-amber-300/60"
+                  : displayOvr >= 74
+                  ? "!bg-slate-300 !text-black !border-white/70"
+                  : displayOvr >= 65
+                  ? "!bg-amber-400 !text-black !border-amber-200/60"
                   : ""
               }`}
             >
@@ -1108,12 +1112,15 @@ function Jogo({
 
               {/* BARRA DE MODO DE EXIBIÇÃO DOS TORNEIOS */}
               <div className="mt-3.5 border-t border-border/70 pt-3">
-                <div className="mb-2 flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+                <div className="mb-2 flex items-center justify-between text-[10px] font-sans uppercase tracking-wider text-muted-foreground">
                   <span>Modo dos torneios</span>
                   <span className="text-[9px] text-muted-foreground/80">Automático ou 1 a 1</span>
                 </div>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                  {(["seletiva", "regional", "estadual"] as const).map((etapa) => {
+                <div className={`grid grid-cols-1 gap-2 ${p.nacionaisGanhos >= 1 ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
+                  {(p.nacionaisGanhos >= 1
+                    ? (["seletiva", "regional", "estadual", "nacional"] as const)
+                    : (["seletiva", "regional", "estadual"] as const)
+                  ).map((etapa) => {
                     const direto = modoTorneio[etapa] === "direto";
                     return (
                       <div
@@ -1182,22 +1189,22 @@ function Jogo({
                           <img src={flag(h.uf)} alt="" className="h-2.5 w-4 shrink-0 object-cover" />
                           <span>{h.batalha}</span>
                           {h.seletiva?.campeao && (
-                            <span className="rounded bg-primary/20 px-1 py-0.2 text-[9px] text-primary font-mono">
+                            <span className="rounded bg-primary/20 px-1 py-0.2 text-[9px] text-primary font-sans">
                               Seletiva
                             </span>
                           )}
                           {h.regional?.campeao && (
-                            <span className="rounded bg-sky-500/20 px-1 py-0.2 text-[9px] text-sky-400 font-mono">
+                            <span className="rounded bg-sky-500/20 px-1 py-0.2 text-[9px] text-sky-400 font-sans">
                               Regional
                             </span>
                           )}
                           {h.estadual?.campeao && (
-                            <span className="rounded bg-amber-500/20 px-1 py-0.2 text-[9px] text-amber-300 font-mono">
+                            <span className="rounded bg-amber-500/20 px-1 py-0.2 text-[9px] text-amber-300 font-sans">
                               🏆 Estadual
                             </span>
                           )}
                           {h.nacional?.campeao && (
-                            <span className="rounded bg-yellow-400/20 px-1 py-0.2 text-[9px] text-yellow-300 font-mono font-black border border-yellow-500/40">
+                            <span className="rounded bg-yellow-400/20 px-1 py-0.2 text-[9px] text-yellow-300 font-sans font-black border border-yellow-500/40">
                               👑 NACIONAL
                             </span>
                           )}
@@ -1206,10 +1213,10 @@ function Jogo({
                       <td className="text-center">
                         <span className="rounded bg-primary px-1.5 py-0.2 font-black text-primary-foreground">{h.ovr}</span>
                       </td>
-                      <td className="text-center font-mono">{h.batalhas}</td>
-                      <td className="text-center font-mono">{h.twolalas}</td>
-                      <td className="text-center font-mono">{h.folinhas}</td>
-                      <td className="text-center font-mono font-bold text-amber-400">{h.tacas}</td>
+                      <td className="text-center font-sans">{h.batalhas}</td>
+                      <td className="text-center font-sans">{h.twolalas}</td>
+                      <td className="text-center font-sans">{h.folinhas}</td>
+                      <td className="text-center font-sans font-bold text-amber-400">{h.tacas}</td>
                     </>
                   ) : (
                     <td colSpan={6} />
@@ -1239,7 +1246,7 @@ function Jogo({
                 )}
                 <div>
                   <span
-                    className={`text-[9px] font-mono font-bold uppercase tracking-widest ${circuitoModal.etapa === "estadual"
+                    className={`text-[9px] font-sans font-bold uppercase tracking-widest ${circuitoModal.etapa === "estadual"
                         ? "text-amber-400"
                         : circuitoModal.etapa === "regional"
                           ? "text-sky-400"
@@ -1260,7 +1267,7 @@ function Jogo({
               </div>
 
               <span
-                className={`rounded px-2 py-0.5 font-mono text-[11px] font-bold ${circuitoModal.etapa === "estadual"
+                className={`rounded px-2 py-0.5 font-sans text-[11px] font-bold ${circuitoModal.etapa === "estadual"
                     ? "bg-amber-500/20 text-amber-300"
                     : circuitoModal.etapa === "regional"
                       ? "bg-sky-500/20 text-sky-300"
@@ -1315,7 +1322,7 @@ function Jogo({
                       <div className="flex items-center justify-between font-bold">
                         <span>{f.nome}</span>
                         {aindaRimando ? (
-                          <span className="text-[11px] text-muted-foreground font-mono">Bate-volta...</span>
+                          <span className="text-[11px] text-muted-foreground font-sans">Bate-volta...</span>
                         ) : (
                           <span className={f.passou ? "text-success font-black" : "text-destructive font-black"}>
                             {f.passou ? `PASSOU (${f.placar})` : `ELIMINADO (${f.placar})`}
@@ -1429,7 +1436,7 @@ function Jogo({
                   />
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[9px] sm:text-[10px] font-mono font-extrabold uppercase tracking-widest text-amber-400">
+                      <span className="text-[9px] sm:text-[10px] font-sans font-extrabold uppercase tracking-widest text-amber-400">
                         Belo Horizonte · Viaduto Santa Tereza
                       </span>
                       <span className="rounded bg-amber-500/20 px-1 py-0.2 text-[8px] font-bold text-amber-300">
@@ -1443,8 +1450,8 @@ function Jogo({
                 </div>
 
                 <div className="flex flex-col items-end">
-                  <span className="text-[9px] font-mono text-muted-foreground uppercase">Fase</span>
-                  <span className="rounded bg-primary/20 px-1.5 py-0.5 font-mono text-xs font-black text-primary">
+                  <span className="text-[9px] font-sans text-muted-foreground uppercase">Fase</span>
+                  <span className="rounded bg-primary/20 px-1.5 py-0.5 font-sans text-xs font-black text-primary">
                     {dueloNacional.faseAtualIndex + 1}/5
                   </span>
                 </div>
@@ -1466,10 +1473,10 @@ function Jogo({
                   <div className="flex flex-col gap-2 sm:gap-2.5">
                     {/* Indicador da Fase */}
                     <div className="flex items-center justify-between bg-card/60 border border-border rounded-lg px-2.5 py-1">
-                      <span className="text-xs font-mono font-bold text-amber-300 uppercase">
+                      <span className="text-xs font-sans font-bold text-amber-300 uppercase">
                         {batalha.faseNome}
                       </span>
-                      <span className="text-[10px] text-muted-foreground font-mono">
+                      <span className="text-[10px] text-muted-foreground font-sans">
                         Duelo eliminatório
                       </span>
                     </div>
@@ -1486,14 +1493,14 @@ function Jogo({
                             <img src={flag(dueloNacional.anoPendente.uf)} alt={dueloNacional.anoPendente.uf} className="h-3 w-4.5 rounded object-cover shadow" />
                             <span className="font-black text-xs sm:text-sm text-foreground truncate">{p.nome}</span>
                           </div>
-                          <span className="text-[9px] font-mono text-primary font-bold">{dueloNacional.anoPendente.uf}</span>
+                          <span className="text-[9px] font-sans text-primary font-bold">{dueloNacional.anoPendente.uf}</span>
                         </div>
                       </div>
 
                       {/* Placar Central */}
                       <div className="flex flex-col items-center px-1.5">
-                        <span className="text-[9px] font-mono uppercase text-muted-foreground">Placar</span>
-                        <div className="flex items-center gap-1 text-base sm:text-lg font-black font-mono">
+                        <span className="text-[9px] font-sans uppercase text-muted-foreground">Placar</span>
+                        <div className="flex items-center gap-1 text-base sm:text-lg font-black font-sans">
                           <span className={ptsJogador > ptsAdversario ? "text-success" : ""}>{ptsJogador}</span>
                           <span className="text-muted-foreground">x</span>
                           <span className={ptsAdversario > ptsJogador ? "text-destructive" : ""}>{ptsAdversario}</span>
@@ -1518,7 +1525,7 @@ function Jogo({
                                 {batalha.adversario.campeaoAno}
                               </span>
                             )}
-                            <span className="text-[9px] font-mono text-muted-foreground">
+                            <span className="text-[9px] font-sans text-muted-foreground">
                               {batalha.adversario.uf}
                             </span>
                           </div>
@@ -1627,7 +1634,7 @@ function Jogo({
 
               {/* Faixa compacta dos 32 MCs do Duelo */}
               <div className="border-t border-border/60 pt-2">
-                <div className="flex items-center justify-between text-[9px] font-mono text-muted-foreground mb-1 uppercase">
+                <div className="flex items-center justify-between text-[9px] font-sans text-muted-foreground mb-1 uppercase">
                   <span>Chave dos 32 MCs</span>
                   <span>BH · Viaduto Santa Tereza</span>
                 </div>
@@ -1662,7 +1669,7 @@ function Jogo({
                 className="h-6 w-9 rounded object-cover shadow border border-white/20 shrink-0"
               />
               <div>
-                <span className="text-[9px] font-mono uppercase tracking-widest text-amber-400 font-bold">
+                <span className="text-[9px] font-sans uppercase tracking-widest text-amber-400 font-bold">
                   Proposta de Outro Estado
                 </span>
                 <h3 className="text-base sm:text-lg font-black text-foreground">Mudança de Estado</h3>
@@ -1722,7 +1729,7 @@ function Aposentadoria({ p, onNew }: { p: Player; onNew: () => void }) {
     <main className="grain flex min-h-screen flex-col items-center justify-center p-4 text-center">
       <div className="panel max-w-xl w-full p-6 border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.2)]">
         <span className="text-4xl">👑</span>
-        <span className="block mt-2 font-mono text-[11px] font-bold uppercase tracking-widest text-amber-400">
+        <span className="block mt-2 font-sans text-[11px] font-bold uppercase tracking-widest text-amber-400">
           Carreira Concluída · Lenda da Rima
         </span>
         <h1 className="text-3xl font-black mt-1">{p.nome} ({p.uf})</h1>
