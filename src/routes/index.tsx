@@ -92,15 +92,28 @@ function App() {
 }
 
 function Logo({ small }: { small?: boolean }) {
+  if (import.meta.env.DEV) {
+    return (
+      <div className={`flex flex-col items-center justify-center select-none ${small ? "gap-0.5" : "gap-2"}`}>
+        <img
+          src="/rimero-mic.png"
+          alt="rimero."
+          className={small ? "h-8 w-auto md:h-9 object-contain" : "h-32 w-auto md:h-44 object-contain"}
+        />
+        <span
+          className={`font-black tracking-tight text-foreground leading-none ${
+            small ? "text-base md:text-lg" : "text-4xl md:text-5xl"
+          }`}
+        >
+          rimero<span className="text-primary">.</span>
+        </span>
+      </div>
+    );
+  }
   return (
     <img
       src={logo.url}
       alt="rimero."
-      onError={(e) => {
-        if (!e.currentTarget.src.endsWith("/rimero-logo.svg")) {
-          e.currentTarget.src = "/rimero-logo.svg";
-        }
-      }}
       className={small ? "h-10 w-auto md:h-12" : "h-48 w-auto md:h-64"}
     />
   );
