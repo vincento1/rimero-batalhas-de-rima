@@ -158,7 +158,7 @@ export const BATALHAS_CONSOLIDADAS: BatalhaConsolidada[] = [
     "estado": "Distrito Federal",
     "uf": "DF",
     "reputacao": "Estadual",
-    "nivelBase": 48
+    "nivelBase": 55
   },
   {
     "nome": "Batalha da Quadra",
@@ -166,7 +166,7 @@ export const BATALHAS_CONSOLIDADAS: BatalhaConsolidada[] = [
     "estado": "Distrito Federal",
     "uf": "DF",
     "reputacao": "Nacional",
-    "nivelBase": 65
+    "nivelBase": 72
   },
   {
     "nome": "Batalha do Quiosque",
@@ -174,7 +174,7 @@ export const BATALHAS_CONSOLIDADAS: BatalhaConsolidada[] = [
     "estado": "Distrito Federal",
     "uf": "DF",
     "reputacao": "Nacional",
-    "nivelBase": 82
+    "nivelBase": 86
   },
   {
     "nome": "Batalha da Cobertura",
@@ -182,15 +182,15 @@ export const BATALHAS_CONSOLIDADAS: BatalhaConsolidada[] = [
     "estado": "Espírito Santo",
     "uf": "ES",
     "reputacao": "Estadual",
-    "nivelBase": 65
+    "nivelBase": 70
   },
   {
     "nome": "Batalha do Museu",
     "cidade": "Vitória",
     "estado": "Espírito Santo",
     "uf": "ES",
-    "reputacao": "Estadual",
-    "nivelBase": 82
+    "reputacao": "Nacional",
+    "nivelBase": 85
   },
   {
     "nome": "Roda da Praça",
@@ -198,7 +198,7 @@ export const BATALHAS_CONSOLIDADAS: BatalhaConsolidada[] = [
     "estado": "Espírito Santo",
     "uf": "ES",
     "reputacao": "Regional",
-    "nivelBase": 48
+    "nivelBase": 52
   },
   {
     "nome": "Roda do Anfiteatro",
@@ -405,24 +405,24 @@ export const BATALHAS_CONSOLIDADAS: BatalhaConsolidada[] = [
     "cidade": "Belo Horizonte",
     "estado": "Minas Gerais",
     "uf": "MG",
-    "reputacao": "Estadual",
-    "nivelBase": 77
+    "reputacao": "Nacional",
+    "nivelBase": 82
   },
   {
     "nome": "Batalha do Sertão da Paz",
     "cidade": "Belo Horizonte",
     "estado": "Minas Gerais",
     "uf": "MG",
-    "reputacao": "Toda a cidade",
-    "nivelBase": 53
+    "reputacao": "Regional",
+    "nivelBase": 58
   },
   {
     "nome": "Batalha da Esquina",
     "cidade": "Belo Horizonte",
     "estado": "Minas Gerais",
     "uf": "MG",
-    "reputacao": "Estadual",
-    "nivelBase": 79
+    "reputacao": "Nacional",
+    "nivelBase": 84
   },
   {
     "nome": "Batalha do Palco da Paz",
@@ -430,7 +430,7 @@ export const BATALHAS_CONSOLIDADAS: BatalhaConsolidada[] = [
     "estado": "Minas Gerais",
     "uf": "MG",
     "reputacao": "Nacional",
-    "nivelBase": 82
+    "nivelBase": 88
   },
   {
     "nome": "Batalha da Trilha",
@@ -926,7 +926,7 @@ export const BATALHAS_CONSOLIDADAS: BatalhaConsolidada[] = [
     "estado": "Rio de Janeiro",
     "uf": "RJ",
     "reputacao": "Nacional",
-    "nivelBase": 81
+    "nivelBase": 86
   },
   {
     "nome": "Duelo da Encosta",
@@ -950,7 +950,7 @@ export const BATALHAS_CONSOLIDADAS: BatalhaConsolidada[] = [
     "estado": "Rio de Janeiro",
     "uf": "RJ",
     "reputacao": "Nacional",
-    "nivelBase": 82
+    "nivelBase": 88
   },
   {
     "nome": "Batalha do Beco Central",
@@ -974,7 +974,7 @@ export const BATALHAS_CONSOLIDADAS: BatalhaConsolidada[] = [
     "estado": "Rio de Janeiro",
     "uf": "RJ",
     "reputacao": "Nacional",
-    "nivelBase": 79
+    "nivelBase": 84
   },
   {
     "nome": "Batalha da Ponte",
@@ -1310,7 +1310,7 @@ export const BATALHAS_CONSOLIDADAS: BatalhaConsolidada[] = [
     "estado": "São Paulo",
     "uf": "SP",
     "reputacao": "Nacional",
-    "nivelBase": 80
+    "nivelBase": 86
   },
   {
     "nome": "Batalha da Gruta",
@@ -1374,7 +1374,7 @@ export const BATALHAS_CONSOLIDADAS: BatalhaConsolidada[] = [
     "estado": "São Paulo",
     "uf": "SP",
     "reputacao": "Nacional",
-    "nivelBase": 82
+    "nivelBase": 90
   },
   {
     "nome": "Roda da Estação",
@@ -1382,7 +1382,7 @@ export const BATALHAS_CONSOLIDADAS: BatalhaConsolidada[] = [
     "estado": "São Paulo",
     "uf": "SP",
     "reputacao": "Regional",
-    "nivelBase": 52
+    "nivelBase": 56
   },
   {
     "nome": "Roda do Museu",
@@ -1390,15 +1390,15 @@ export const BATALHAS_CONSOLIDADAS: BatalhaConsolidada[] = [
     "estado": "São Paulo",
     "uf": "SP",
     "reputacao": "Regional",
-    "nivelBase": 56
+    "nivelBase": 60
   },
   {
     "nome": "Roda da Fábrica",
     "cidade": "São Paulo",
     "estado": "São Paulo",
     "uf": "SP",
-    "reputacao": "Estadual",
-    "nivelBase": 78
+    "reputacao": "Nacional",
+    "nivelBase": 84
   },
   {
     "nome": "Duelo do Morro",

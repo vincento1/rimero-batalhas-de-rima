@@ -464,42 +464,61 @@ export type PropostaExterna = {
 };
 
 export function sortearPropostaExterna(p: Player, bAtual: Battle): PropostaExterna | null {
-  // Propostas externas só para MCs de alto nível (OVR >= 85)
-  if (p.ovr < 85) return null;
+  if (p.ovr >= 85) {
+    // ── MCs de ELITE (85+): batalhas de alto nível, chance alta ──
+    const baseChance = 0.60 + clamp((p.ovr - 85) * 0.015, 0, 0.20); // 60% a 80%
+    if (Math.random() > baseChance) return null;
 
-  // Para MCs de elite: chance maior e até 2 propostas (retorna a melhor)
-  const baseChance = 0.60 + clamp((p.ovr - 85) * 0.015, 0, 0.20); // 60% a 80%
-  if (Math.random() > baseChance) return null;
+    // Batalhas de prestígio do Sudeste que convocam os melhores
+    const nomesElite = [
+      "Batalha do Coliseu",
+      "Roda dos Escolhidos",
+      "Duelo da Elite",
+      "Batalha Interestadual",
+      "Seletiva Aberta do Sudeste",
+      "Desafio dos Pesos Pesados",
+      "Desafio do Sudeste",
+    ];
+    const candidatos = nomesElite.filter((n) => n !== bAtual.nome);
 
-  // Nomes de batalhas reconhecidas que convocam MCs de elite
-  const nomesElite = [
-    "Batalha do Coliseu",
-    "Roda dos Escolhidos",
-    "Duelo da Elite",
-    "Batalha Interestadual",
-    "Seletiva Aberta do Norte",
-    "Desafio dos Pesos Pesados",
-    "Batalha Convite Nacional",
-  ];
-  const candidatos = nomesElite.filter((n) => n !== bAtual.nome);
+    // Para OVR >= 93 pode vir até 2 propostas – retorna sempre a melhor (maior nível)
+    const qtd = p.ovr >= 93 ? 2 : 1;
+    const escolhidos: PropostaExterna[] = [];
+    const usados = new Set<string>();
+    for (let i = 0; i < qtd; i++) {
+      const disponiveis = candidatos.filter((n) => !usados.has(n));
+      if (disponiveis.length === 0) break;
+      const nome = pick(disponiveis);
+      usados.add(nome);
+      // Nível desafiador mas não impossível
+      const nivel = clamp(p.ovr - r(2, 5), 70, 92);
+      escolhidos.push({ batalhaNome: nome, nivel });
+    }
 
-  // Para OVR >= 93 pode vir até 2 propostas – retorna sempre a melhor (maior nível)
-  const qtd = p.ovr >= 93 ? 2 : 1;
-  const escolhidos: PropostaExterna[] = [];
-  const usados = new Set<string>();
-  for (let i = 0; i < qtd; i++) {
-    const disponiveis = candidatos.filter((n) => !usados.has(n));
-    if (disponiveis.length === 0) break;
-    const nome = pick(disponiveis);
-    usados.add(nome);
-    // Nível um pouco abaixo do OVR do MC para ser desafiador mas não impossível
-    const nivel = clamp(p.ovr - r(2, 5), 70, 92);
-    escolhidos.push({ batalhaNome: nome, nivel });
+    if (escolhidos.length === 0) return null;
+    return escolhidos.reduce((best, cur) => (cur.nivel > best.nivel ? cur : best));
   }
 
-  if (escolhidos.length === 0) return null;
-  // Retorna a proposta com maior nível (mais prestígio)
-  return escolhidos.reduce((best, cur) => (cur.nivel > best.nivel ? cur : best));
+  // ── MCs COM OVR < 85: batalhas menores de bairro/interior, chance moderada ──
+  const chanceBase = p.ovr >= 70 ? 0.35 : p.ovr >= 55 ? 0.22 : 0.12;
+  if (Math.random() > chanceBase) return null;
+
+  // Batalhas acessíveis para quem ainda está crescendo
+  const nomesMenores = [
+    "Batalha da Cohab",
+    "Roda do Interior",
+    "Duelo do Bairro",
+    "Roda da Periferia",
+    "Batalha da Quebrada",
+    "Duelo do Conjunto",
+    "Roda do Complexo",
+    "Batalha da Vila",
+  ];
+  const candidatos = nomesMenores.filter((n) => n !== bAtual.nome);
+  const nome = pick(candidatos);
+  // Nível proporcional ao OVR, mas sempre abaixo para ser uma "segunda chance" acessível
+  const nivel = clamp(p.ovr - r(4, 8), 38, 78);
+  return { batalhaNome: nome, nivel };
 }
 
 /**
