@@ -328,11 +328,11 @@ function Jogo({
         }
         return current + step;
       });
-    }, 85);
+    }, 50);
 
     const clearDeltaTimeout = window.setTimeout(() => {
       setOvrAnimDelta(null);
-    }, 2200);
+    }, 1400);
 
     return () => {
       window.clearTimeout(clearDeltaTimeout);
@@ -363,7 +363,7 @@ function Jogo({
     const start = { ...displayTot };
     const target = tot;
     if (start.b === target.b && start.two === target.two && start.f === target.f && start.t === target.t) return;
-    const steps = 12;
+    const steps = 8;
     let step = 0;
     const id = window.setInterval(() => {
       step++;
@@ -379,7 +379,7 @@ function Jogo({
           t: Math.round(start.t + (target.t - start.t) * t),
         });
       }
-    }, 45);
+    }, 30);
     return () => window.clearInterval(id);
   }, [tot.b, tot.two, tot.f, tot.t]);
 
@@ -396,7 +396,7 @@ function Jogo({
     // Aguarda a animação dos números terminar antes de mostrar as novas ofertas
     window.setTimeout(() => {
       setOfertas(convites(next));
-    }, 2300);
+    }, 1600);
     if (Math.random() < 0.2) {
       setSorteio(null);
       setEvento(sortearEvento());
@@ -424,7 +424,7 @@ function Jogo({
       tacas: atual.tacas + res.tacas,
     };
 
-    const textoTemporada = `${b.nome} (${b.local}): ${res.edicoes} edições, ${res.folinhas} folinhas e ${res.twolalas} twolalas.`;
+    const textoTemporada = `${b.nome} (${b.uf ?? p.uf}): ${res.edicoes} edições, ${res.folinhas} folinhas e ${res.twolalas} twolalas.`;
 
     // Checar Seletiva da batalha
     const checagem = checarSeletiva({ ...pl, ovr: novoOvr }, b);
@@ -433,7 +433,7 @@ function Jogo({
       const simulacao = simularFasesTorneio(novoOvr, checagem.nivelSeletiva);
       setMsg(textoTemporada);
       setAnoAnimando(pl.idade);
-      window.setTimeout(() => setAnoAnimando(null), 2200);
+      window.setTimeout(() => setAnoAnimando(null), 1400);
       setP({
         ...pl,
         ovr: novoOvr,
@@ -454,7 +454,7 @@ function Jogo({
           concluida: false,
           anoPendente: ano,
         });
-      }, 2400);
+      }, 1800);
       return;
     }
 
@@ -463,7 +463,7 @@ function Jogo({
     if (propExterna) {
       setMsg(textoTemporada);
       setAnoAnimando(pl.idade);
-      window.setTimeout(() => setAnoAnimando(null), 2200);
+      window.setTimeout(() => setAnoAnimando(null), 1400);
       setP({
         ...pl,
         ovr: novoOvr,
@@ -472,14 +472,14 @@ function Jogo({
       });
       window.setTimeout(() => {
         setPropostaExterna({ prop: propExterna, anoPendente: ano });
-      }, 2400);
+      }, 1800);
       return;
     }
 
     const msgFinal = checagem.temSeletiva ? `${textoTemporada} ${checagem.motivo}` : textoTemporada;
     setMsg(msgFinal);
     setAnoAnimando(pl.idade);
-    window.setTimeout(() => setAnoAnimando(null), 2200);
+    window.setTimeout(() => setAnoAnimando(null), 1400);
     avancarAno({
       ...pl,
       ovr: novoOvr,
@@ -1770,7 +1770,7 @@ function Jogo({
 
             <p className="text-xs text-muted-foreground mt-2">
               Você recebeu uma proposta oficial para disputar a temporada na{" "}
-              <strong className="text-foreground">{propostaMudancaEstado.nome}</strong> ({propostaMudancaEstado.local}).
+              <strong className="text-foreground">{propostaMudancaEstado.nome}</strong> ({ESTADOS.find((e) => e[0] === (propostaMudancaEstado.uf || p.uf))?.[1] ?? propostaMudancaEstado.uf}).
             </p>
 
             <div className="rounded-lg bg-amber-500/15 border border-amber-500/30 p-3 my-3 text-xs text-amber-200">

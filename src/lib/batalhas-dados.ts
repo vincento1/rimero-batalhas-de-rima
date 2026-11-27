@@ -177,6 +177,14 @@ export const BATALHAS_CONSOLIDADAS: BatalhaConsolidada[] = [
     "nivelBase": 86
   },
   {
+    "nome": "Batalha da Biblioteca",
+    "cidade": "Brasília",
+    "estado": "Distrito Federal",
+    "uf": "DF",
+    "reputacao": "Nacional",
+    "nivelBase": 91
+  },
+  {
     "nome": "Batalha da Cobertura",
     "cidade": "Vila Velha",
     "estado": "Espírito Santo",
@@ -953,6 +961,22 @@ export const BATALHAS_CONSOLIDADAS: BatalhaConsolidada[] = [
     "nivelBase": 88
   },
   {
+    "nome": "Batalha do Partenon",
+    "cidade": "Rio de Janeiro",
+    "estado": "Rio de Janeiro",
+    "uf": "RJ",
+    "reputacao": "Nacional",
+    "nivelBase": 90
+  },
+  {
+    "nome": "Batalha do Blindado",
+    "cidade": "Rio de Janeiro",
+    "estado": "Rio de Janeiro",
+    "uf": "RJ",
+    "reputacao": "Nacional",
+    "nivelBase": 88
+  },
+  {
     "nome": "Batalha do Beco Central",
     "cidade": "Rio de Janeiro",
     "estado": "Rio de Janeiro",
@@ -1311,6 +1335,14 @@ export const BATALHAS_CONSOLIDADAS: BatalhaConsolidada[] = [
     "uf": "SP",
     "reputacao": "Nacional",
     "nivelBase": 86
+  },
+  {
+    "nome": "Batalha da Alcateia",
+    "cidade": "São Paulo",
+    "estado": "São Paulo",
+    "uf": "SP",
+    "reputacao": "Nacional",
+    "nivelBase": 92
   },
   {
     "nome": "Batalha da Gruta",

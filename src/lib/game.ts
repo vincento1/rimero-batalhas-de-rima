@@ -132,7 +132,7 @@ export function convites(p: Player): Battle[] {
     const ultimoAno = historicoBatalha.at(-1);
     const nivelBase = ultimoAno?.nivelBatalha ?? clamp(p.ovr - 2, 38, 92);
     const batalhaOriginal = BATALHAS_CONSOLIDADAS.find((b) => b.nome === p.batalhaAtualNome);
-    const localAtual = batalhaOriginal ? `${batalhaOriginal.cidade}, ${batalhaOriginal.uf}` : est;
+    const localAtual = batalhaOriginal ? ESTADOS.find((e) => e[0] === batalhaOriginal.uf)?.[1] ?? batalhaOriginal.uf : est;
     const ufAtual = batalhaOriginal?.uf ?? p.uf;
 
     lista.push({
@@ -158,7 +158,7 @@ export function convites(p: Player): Battle[] {
     id: `gen-${p.uf}-${idx}`,
     nome,
     nivel: clamp(40 + r(-3, 6), 36, 52),
-    local: `${est} (Local)`,
+    local: est,
     uf: p.uf,
     reputacao: "Toda a cidade",
   }));
@@ -169,7 +169,7 @@ export function convites(p: Player): Battle[] {
     id: `oficial-${b.nome}`,
     nome: b.nome,
     nivel: clamp(b.nivelBase + bonus + r(-2, 2), 38, 94),
-    local: `${b.cidade}, ${b.uf}`,
+    local: ESTADOS.find((e) => e[0] === b.uf)?.[1] ?? b.uf,
     uf: b.uf,
     reputacao: b.reputacao,
   }));
@@ -209,7 +209,7 @@ export function convites(p: Player): Battle[] {
         id: `externa-${escolhida.nome}`,
         nome: escolhida.nome,
         nivel: clamp(escolhida.nivelBase + bonus + r(-1, 2), 40, 94),
-        local: `${escolhida.cidade}, ${escolhida.uf}`,
+        local: ESTADOS.find((e) => e[0] === escolhida.uf)?.[1] ?? escolhida.uf,
         uf: escolhida.uf,
         reputacao: escolhida.reputacao,
         mudancaEstado: true,
@@ -226,7 +226,7 @@ export function convites(p: Player): Battle[] {
         id: Math.random().toString(36).slice(2),
         nome: nomeFallback,
         nivel: clamp(p.ovr + r(-3, 3), 36, 94),
-        local: `${est} (Local)`,
+        local: est,
         uf: p.uf,
       });
       nomesNaLista.add(nomeFallback);
