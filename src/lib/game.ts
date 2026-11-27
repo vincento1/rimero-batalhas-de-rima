@@ -716,6 +716,18 @@ export const MCS_DUELO_NACIONAL_REGULARES: NacionalMC[] = [
   { nome: "Lucas RO", uf: "RO", ovr: 78 },
   { nome: "Dan TO", uf: "TO", ovr: 78 },
   { nome: "Allan MS", uf: "MS", ovr: 79 },
+  { nome: "Biel AC", uf: "AC", ovr: 78 },
+  { nome: "Cauã AL", uf: "AL", ovr: 79 },
+  { nome: "Luan AP", uf: "AP", ovr: 78 },
+  { nome: "Matheus PB", uf: "PB", ovr: 79 },
+  { nome: "Thales RR", uf: "RR", ovr: 78 },
+  { nome: "Kauan MA", uf: "MA", ovr: 80 },
+  { nome: "Vini GO", uf: "GO", ovr: 81 },
+  { nome: "Breno GO", uf: "GO", ovr: 80 },
+  { nome: "Ruan BA", uf: "BA", ovr: 81 },
+  { nome: "Léo ES", uf: "ES", ovr: 81 },
+  { nome: "Yuri SC", uf: "SC", ovr: 80 },
+  { nome: "Gui PR", uf: "PR", ovr: 81 },
 ];
 
 export const MCS_DUELO_NACIONAL: NacionalMC[] = [
@@ -766,15 +778,47 @@ export function gerarTorneioDueloNacional(player: Player, anoPendente: Ano): Tor
     (m) => m.nome.toLowerCase() !== player.nome.toLowerCase()
   ).sort(() => 0.5 - Math.random());
   const lendasEscolhidas = lendasSorteaveis.slice(0, qtdLendas);
-  const nomesLendas = new Set(lendasEscolhidas.map((l) => l.nome));
 
   const regularesSorteaveis = MCS_DUELO_NACIONAL_REGULARES.filter(
-    (m) => m.nome.toLowerCase() !== player.nome.toLowerCase() && !nomesLendas.has(m.nome)
+    (m) => m.nome.toLowerCase() !== player.nome.toLowerCase()
   ).sort(() => 0.5 - Math.random());
 
-  const qtdRegulares = 31 - lendasEscolhidas.length;
-  const participantes = [...lendasEscolhidas, ...regularesSorteaveis.slice(0, qtdRegulares)]
-    .sort(() => 0.5 - Math.random());
+  // Formato real: 1 representante por estado (27 UFs: jogador + 26 outros estados) + 5 de repescagem = 32 MCs (31 adversários)
+  const escolhidosNomes = new Set<string>();
+  const representantesEstados: NacionalMC[] = [];
+  const outrasUfs = ESTADOS.map((e) => e[0]).filter((uf) => uf !== player.uf);
+
+  // Alocar 1 representante para cada um dos outros 26 estados
+  for (const uf of outrasUfs) {
+    const lendaDaUf = lendasEscolhidas.find((l) => l.uf === uf && !escolhidosNomes.has(l.nome));
+    const candidato =
+      lendaDaUf ??
+      regularesSorteaveis.find((m) => m.uf === uf && !escolhidosNomes.has(m.nome)) ??
+      regularesSorteaveis.find((m) => !escolhidosNomes.has(m.nome));
+    if (candidato) {
+      escolhidosNomes.add(candidato.nome);
+      representantesEstados.push(candidato);
+    }
+  }
+
+  // Completar com 5 MCs da repescagem (aleatórios, incluindo eventual lenda restante)
+  const repescagem: NacionalMC[] = [];
+  for (const lenda of lendasEscolhidas) {
+    if (repescagem.length >= 5) break;
+    if (!escolhidosNomes.has(lenda.nome)) {
+      escolhidosNomes.add(lenda.nome);
+      repescagem.push(lenda);
+    }
+  }
+  for (const reg of regularesSorteaveis) {
+    if (repescagem.length >= 5) break;
+    if (!escolhidosNomes.has(reg.nome)) {
+      escolhidosNomes.add(reg.nome);
+      repescagem.push(reg);
+    }
+  }
+
+  const participantes = [...representantesEstados, ...repescagem].sort(() => 0.5 - Math.random());
 
   // Selecionar 5 adversários estritamente únicos para as 5 fases do jogador (prevenindo repetição de MC)
   const usados = new Set<string>();

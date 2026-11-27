@@ -31,7 +31,7 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "rimero. — carreira de MC de batalha" },
+      { title: "Rimero." },
       { name: "description", content: "Simulador de carreira de batalhas de rima no Brasil. Represente seu estado e viva seu sonho." },
       { property: "og:title", content: "rimero. — carreira de MC de batalha" },
       { property: "og:description", content: "Represente seu estado e suba nas batalhas de rima do Brasil." },
@@ -102,7 +102,8 @@ function Inicio({ onStart, onNew, temCarreira }: { onStart: () => void; onNew: (
         <Logo />
       </div>
       <p className="mt-4 max-w-xl text-sm md:text-base text-foreground/90">
-        faça sua carreira como mc de batalha, com mcs e batalhas brasileiras. represente seu estado, participe do circuito nacional e corra atrás do seu sonho!
+        faça sua carreira como mc de batalha no cenário brasileiro. represente seu estado, participe do circuito nacional e corra atrás do seu sonho!
+        (baseado no jogo argentino copero)
       </p>
       <div className="my-5 h-[2px] w-full max-w-2xl bg-primary" />
       <button onClick={onStart} className="btn-main">
@@ -268,10 +269,24 @@ function Jogo({
     estadual: "batalha",
     nacional: "batalha",
   });
+  const [mostrarVelocidade, setMostrarVelocidade] = useState(false);
+  const [anoAnimando, setAnoAnimando] = useState<number | null>(null);
 
   const timerRef = useRef<number | null>(null);
   const animIntervalRef = useRef<number | null>(null);
   const faseTimeoutRef = useRef<number | null>(null);
+  const tabelaRef = useRef<HTMLElement | null>(null);
+  const linhaAtualRef = useRef<HTMLTableRowElement | null>(null);
+
+  useEffect(() => {
+    const container = tabelaRef.current;
+    const row = linhaAtualRef.current;
+    if (!container || !row) return;
+    if (container.scrollHeight > container.clientHeight) {
+      const targetTop = Math.max(0, row.offsetTop - container.clientHeight / 2 + row.clientHeight / 2);
+      container.scrollTo({ top: targetTop, behavior: "smooth" });
+    }
+  }, [p.idade, anoAnimando]);
 
   useEffect(() => {
     return () => {
@@ -328,6 +343,31 @@ function Jogo({
     { b: 0, two: 0, f: 0, t: 0 },
   );
 
+  const [displayTot, setDisplayTot] = useState(tot);
+  useEffect(() => {
+    const start = { ...displayTot };
+    const target = tot;
+    if (start.b === target.b && start.two === target.two && start.f === target.f && start.t === target.t) return;
+    const steps = 12;
+    let step = 0;
+    const id = window.setInterval(() => {
+      step++;
+      const t = step / steps;
+      if (step >= steps) {
+        setDisplayTot(target);
+        window.clearInterval(id);
+      } else {
+        setDisplayTot({
+          b: Math.round(start.b + (target.b - start.b) * t),
+          two: Math.round(start.two + (target.two - start.two) * t),
+          f: Math.round(start.f + (target.f - start.f) * t),
+          t: Math.round(start.t + (target.t - start.t) * t),
+        });
+      }
+    }, 45);
+    return () => window.clearInterval(id);
+  }, [tot.b, tot.two, tot.f, tot.t]);
+
   const estaSuspenso = p.anosSuspensao > 0;
 
   function avancarAno(np: Player) {
@@ -371,31 +411,55 @@ function Jogo({
 
     if (checagem.chamado) {
       const simulacao = simularFasesTorneio(novoOvr, checagem.nivelSeletiva);
-      setCircuitoModal({
-        etapa: "seletiva",
-        batalhaNome: b.nome,
-        uf: pl.uf,
-        nivel: checagem.nivelSeletiva,
-        emAndamento: false,
-        faseEmDisputaIndex: 0,
-        revelandoResultadoFase: false,
-        fases: simulacao.fases,
-        campeao: simulacao.campeao,
-        concluida: false,
-        anoPendente: ano,
+      setMsg(textoTemporada);
+      setAnoAnimando(pl.idade);
+      window.setTimeout(() => setAnoAnimando(null), 2200);
+      setP({
+        ...pl,
+        ovr: novoOvr,
+        batalhaAtualNome: b.nome,
+        historico: [...pl.historico.filter((h) => h.idade !== pl.idade), ano],
       });
+      window.setTimeout(() => {
+        setCircuitoModal({
+          etapa: "seletiva",
+          batalhaNome: b.nome,
+          uf: pl.uf,
+          nivel: checagem.nivelSeletiva,
+          emAndamento: false,
+          faseEmDisputaIndex: 0,
+          revelandoResultadoFase: false,
+          fases: simulacao.fases,
+          campeao: simulacao.campeao,
+          concluida: false,
+          anoPendente: ano,
+        });
+      }, 2400);
       return;
     }
 
     // Se não teve seletiva na sua, pode pintar proposta de outra seletiva menor
     const propExterna = sortearPropostaExterna({ ...pl, ovr: novoOvr }, b);
     if (propExterna) {
-      setPropostaExterna({ prop: propExterna, anoPendente: ano });
+      setMsg(textoTemporada);
+      setAnoAnimando(pl.idade);
+      window.setTimeout(() => setAnoAnimando(null), 2200);
+      setP({
+        ...pl,
+        ovr: novoOvr,
+        batalhaAtualNome: b.nome,
+        historico: [...pl.historico.filter((h) => h.idade !== pl.idade), ano],
+      });
+      window.setTimeout(() => {
+        setPropostaExterna({ prop: propExterna, anoPendente: ano });
+      }, 2400);
       return;
     }
 
     const msgFinal = checagem.temSeletiva ? `${textoTemporada} ${checagem.motivo}` : textoTemporada;
     setMsg(msgFinal);
+    setAnoAnimando(pl.idade);
+    window.setTimeout(() => setAnoAnimando(null), 2200);
     avancarAno({
       ...pl,
       ovr: novoOvr,
@@ -865,9 +929,9 @@ function Jogo({
   const est = ESTADOS.find((e) => e[0] === p.uf)?.[1];
 
   return (
-    <main className="grid min-h-screen gap-3 p-3 md:p-4 lg:grid-cols-[minmax(0,390px)_1fr] xl:grid-cols-[minmax(0,420px)_1fr]">
-      {/* PAINEL ESQUERDO */}
-      <section className="panel flex flex-col justify-between p-3.5 md:p-4">
+    <main className="grid min-h-screen gap-3 p-3 md:p-4 lg:grid-cols-[minmax(0,390px)_1fr] lg:content-start xl:grid-cols-[minmax(0,420px)_1fr]">
+      {/* PAINEL ESQUERDO - INFO MC */}
+      <section className="panel flex flex-col p-3.5 md:p-4 order-1 lg:order-none lg:col-start-1 lg:row-start-1">
         <div>
           <div className="mb-3 flex items-center justify-between">
             <button onClick={onBack} className="text-xs font-bold text-muted-foreground underline hover:text-foreground">
@@ -885,19 +949,18 @@ function Jogo({
 
           <div className="flex items-start gap-3">
             <div
-              className={`ovr relative overflow-hidden shrink-0 transition-colors duration-300 ${
-                displayOvr > 90
-                  ? "!bg-purple-600 !text-white !border-purple-300/60 shadow-[0_0_15px_rgba(168,85,247,0.5)]"
-                  : displayOvr >= 86
+              className={`ovr relative overflow-hidden shrink-0 transition-colors duration-300 ${displayOvr > 90
+                ? "!bg-purple-600 !text-white !border-purple-300/60 shadow-[0_0_15px_rgba(168,85,247,0.5)]"
+                : displayOvr >= 86
                   ? "!bg-cyan-400 !text-black !border-cyan-200/60"
                   : displayOvr >= 78
-                  ? "!bg-emerald-500 !text-black !border-emerald-300/60"
-                  : displayOvr >= 74
-                  ? "!bg-slate-300 !text-black !border-white/70"
-                  : displayOvr >= 65
-                  ? "!bg-amber-400 !text-black !border-amber-200/60"
-                  : ""
-              }`}
+                    ? "!bg-emerald-500 !text-black !border-emerald-300/60"
+                    : displayOvr >= 74
+                      ? "!bg-slate-300 !text-black !border-white/70"
+                      : displayOvr >= 65
+                        ? "!bg-amber-400 !text-black !border-amber-200/60"
+                        : ""
+                }`}
             >
               <span className="text-[10px] font-bold opacity-80">OVR</span>
               <span className="text-3xl md:text-4xl font-black leading-none">{displayOvr}</span>
@@ -916,6 +979,53 @@ function Jogo({
                 <img src={flag(p.uf)} alt={est} className="h-3.5 w-5 rounded-sm object-cover" /> {p.uf}
               </div>
               <h2 className="truncate text-xl font-black">{p.nome}</h2>
+              <button
+                type="button"
+                onClick={() => setMostrarVelocidade((v) => !v)}
+                className="mt-1 inline-flex items-center gap-1 rounded border border-border bg-secondary/70 px-2 py-0.5 text-[10px] font-bold text-foreground hover:bg-secondary transition"
+              >
+                Selecionar velocidade {mostrarVelocidade ? "▲" : "▼"}
+              </button>
+              {mostrarVelocidade && (
+                <div className="mt-2 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+                  {(p.nacionaisGanhos >= 1
+                    ? (["seletiva", "regional", "estadual", "nacional"] as const)
+                    : (["seletiva", "regional", "estadual"] as const)
+                  ).map((etapa) => {
+                    const direto = modoTorneio[etapa] === "direto";
+                    return (
+                      <div
+                        key={etapa}
+                        className="flex flex-col gap-1 rounded-md border border-border bg-card/80 p-1.5 shadow-sm"
+                      >
+                        <span className="text-[10px] font-black capitalize text-foreground">{etapa}</span>
+                        <div className="relative flex rounded bg-secondary p-0.5 text-[10px] font-bold">
+                          <div
+                            className={`absolute bottom-0.5 top-0.5 w-[calc(50%-2px)] rounded bg-primary shadow transition-all duration-200 ease-out ${direto ? "left-[calc(50%+1px)]" : "left-0.5"
+                              }`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setModoTorneio((prev) => ({ ...prev, [etapa]: "batalha" }))}
+                            className={`relative z-10 w-1/2 py-0.5 text-center transition-colors duration-150 ${!direto ? "font-black text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                              }`}
+                          >
+                            Lento
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setModoTorneio((prev) => ({ ...prev, [etapa]: "direto" }))}
+                            className={`relative z-10 w-1/2 py-0.5 text-center transition-colors duration-150 ${direto ? "font-black text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                              }`}
+                          >
+                            Rápido
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
               {p.status && (
                 <span className="mt-1 inline-block truncate max-w-full rounded bg-destructive/20 px-1.5 py-0.5 text-[10px] font-bold text-destructive">
                   {p.status}
@@ -936,10 +1046,10 @@ function Jogo({
 
           <div className="mt-4 grid grid-cols-4 border-y border-border py-2 text-center">
             {[
-              ["BATALHAS", tot.b],
-              ["TWOLALAS", tot.two],
-              ["FOLINHAS", tot.f],
-              ["TAÇAS", tot.t],
+              ["BATALHAS", displayTot.b],
+              ["TWOLALAS", displayTot.two],
+              ["FOLINHAS", displayTot.f],
+              ["TAÇAS", displayTot.t],
             ].map(([l, v]) => (
               <div key={l}>
                 <div className="text-[9px] font-bold text-muted-foreground">{l}</div>
@@ -979,209 +1089,172 @@ function Jogo({
               </div>
             </div>
           )}
-
-          {evento ? (
-            <div className="mt-4" aria-live="polite">
-              <h3 className="text-lg font-black">{evento.titulo}</h3>
-              <p className="mt-1 text-xs text-muted-foreground">{evento.texto}</p>
-
-              {sorteio ? (
-                <div className="mt-3">
-                  {!sorteio.terminou ? (
-                    <div className="flex h-20 items-center justify-center rounded-lg border border-border bg-card px-3 text-center">
-                      <p className="text-xs font-bold text-muted-foreground">Avaliando a cena...</p>
-                    </div>
-                  ) : (
-                    <div className={`rounded-lg border-2 p-3 ${sorteio.ok ? "border-success bg-success/10" : "border-destructive bg-destructive/10"}`}>
-                      <div className="flex items-center justify-between">
-                        <span className={`text-sm font-black ${sorteio.ok ? "text-success" : "text-destructive"}`}>
-                          {sorteio.ok ? "DEU BOM" : "DEU RUIM"}
-                        </span>
-                        <span className={`text-base font-black ${sorteio.ok ? "text-success" : "text-destructive"}`}>
-                          {sorteio.ok ? `OVR +${evento.proposta.bom.delta}` : `OVR ${evento.proposta.ruim.delta}`}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-xs font-bold text-foreground">
-                        {sorteio.ok ? evento.proposta.bom.texto : evento.proposta.ruim.texto}
-                      </p>
-                      {!sorteio.ok && evento.proposta.ruim.suspensaoAnos && (
-                        <p className="mt-1 text-[11px] font-bold text-destructive">
-                          ⚠️ Suspenso por {evento.proposta.ruim.suspensaoAnos} ano.
-                        </p>
-                      )}
-                      <button
-                        onClick={() => {
-                          setEvento(null);
-                          setSorteio(null);
-                        }}
-                        className="mt-3 w-full rounded-lg bg-foreground px-3 py-2 text-xs font-bold text-background"
-                      >
-                        Continuar
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="mt-3 grid gap-2">
-                  <button
-                    onClick={() => responderEvento(true)}
-                    className="card p-2.5 text-left transition hover:border-primary"
-                  >
-                    <span className="block font-black text-sm">{evento.proposta.acao}</span>
-                    <span className="mt-0.5 block text-[11px] font-bold text-muted-foreground">
-                      {Math.round(evento.proposta.chance * 100)}% de chance
-                    </span>
-                    <div className="mt-1.5 flex flex-wrap gap-1.5 text-[11px] font-black">
-                      <span className="rounded bg-success/15 px-1.5 py-0.5 text-success">
-                        Bom: +{evento.proposta.bom.delta}
-                      </span>
-                      <span className="rounded bg-destructive/15 px-1.5 py-0.5 text-destructive">
-                        Ruim: {evento.proposta.ruim.delta}
-                        {evento.proposta.ruim.suspensaoAnos ? ` + Suspensão` : ""}
-                      </span>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => responderEvento(false)}
-                    className="card p-2.5 text-left text-xs font-bold text-muted-foreground hover:text-foreground"
-                  >
-                    Não fazer nada <span className="text-[10px] opacity-75">— sem risco</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : estaSuspenso ? (
-            <div className="mt-4 rounded-lg border border-destructive/40 bg-destructive/10 p-3">
-              <h3 className="text-sm font-black text-destructive">Suspenso neste ano</h3>
-              <p className="mt-0.5 text-xs text-foreground">
-                Impedido de disputar batalhas por 1 temporada. {p.status ? `Motivo: ${p.status}.` : ""}
-              </p>
-              <button onClick={pularAno} className="btn-main mt-3 w-full text-xs">
-                Cumprir suspensão este ano
-              </button>
-            </div>
-          ) : (
-            <div className="mt-4">
-              <h3 className="text-base font-black">Escolha sua batalha do ano</h3>
-              <p className="text-[11px] text-muted-foreground">Ao escolher, a temporada inteira é simulada de uma vez.</p>
-              <div className="mt-2.5 grid gap-1.5">
-                {ofertas.map((b) => {
-                  const ehAtual = b.nome === p.batalhaAtualNome;
-                  return (
-                    <button
-                      key={b.id}
-                      onClick={() => escolherBatalha(b)}
-                      className={`card flex items-center justify-between p-3 text-left transition ${
-                        b.mudancaEstado
-                          ? "border-amber-500/70 bg-amber-500/10 hover:border-amber-500"
-                          : ehAtual
-                          ? "border-primary bg-primary/10"
-                          : ""
-                      }`}
-                    >
-                      <div>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-sm font-black">{b.nome}</span>
-                          {ehAtual && (
-                            <span className="rounded bg-primary px-1.5 py-0.2 text-[9px] font-bold text-primary-foreground">
-                              Sua batalha atual
-                            </span>
-                          )}
-                          {b.mudancaEstado && (
-                            <span className="rounded bg-amber-500/25 text-amber-300 border border-amber-500/50 px-1.5 py-0.2 text-[9px] font-bold">
-                              ✈️ Mudar para {b.uf}
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                          {b.uf && <img src={flag(b.uf)} alt={b.uf} className="h-2.5 w-4 object-cover rounded-sm inline-block" />}
-                          <span>{b.uf || p.uf}</span>
-                        </div>
-                      </div>
-                      <span className={`rounded px-2 py-0.5 text-xs font-black ${b.nivel > p.ovr ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>
-                        NV {b.nivel}
-                      </span>
-                    </button>
-                  );
-                })}
-                <button onClick={pularAno} className="mt-1 text-xs text-muted-foreground underline hover:text-foreground">
-                  Não rimar neste ano
-                </button>
-              </div>
-
-              {/* BARRA DE MODO DE EXIBIÇÃO DOS TORNEIOS */}
-              <div className="mt-3.5 border-t border-border/70 pt-3">
-                <div className="mb-2 flex items-center justify-between text-[10px] font-sans uppercase tracking-wider text-muted-foreground">
-                  <span>Modo dos torneios</span>
-                  <span className="text-[9px] text-muted-foreground/80">Automático ou 1 a 1</span>
-                </div>
-                <div className={`grid grid-cols-1 gap-2 ${p.nacionaisGanhos >= 1 ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
-                  {(p.nacionaisGanhos >= 1
-                    ? (["seletiva", "regional", "estadual", "nacional"] as const)
-                    : (["seletiva", "regional", "estadual"] as const)
-                  ).map((etapa) => {
-                    const direto = modoTorneio[etapa] === "direto";
-                    return (
-                      <div
-                        key={etapa}
-                        className="flex flex-col gap-1.5 rounded-lg border border-border bg-card/60 p-2 shadow-sm"
-                      >
-                        <div className="flex items-center justify-between text-xs font-black capitalize text-foreground">
-                          <span>{etapa}</span>
-                        </div>
-                        <div className="relative flex rounded-md bg-secondary p-0.5 text-[11px] font-bold">
-                          <div
-                            className={`absolute bottom-0.5 top-0.5 w-[calc(50%-2px)] rounded bg-primary shadow transition-all duration-200 ease-out ${direto ? "left-[calc(50%+1px)]" : "left-0.5"
-                              }`}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setModoTorneio((prev) => ({ ...prev, [etapa]: "batalha" }))}
-                            className={`relative z-10 w-1/2 py-1 text-center transition-colors duration-150 ${!direto ? "font-black text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-                              }`}
-                          >
-                            Lento
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setModoTorneio((prev) => ({ ...prev, [etapa]: "direto" }))}
-                            className={`relative z-10 w-1/2 py-1 text-center transition-colors duration-150 ${direto ? "font-black text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-                              }`}
-                          >
-                            Rápido
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </section>
 
+      {/* PAINEL ESQUERDO INFERIOR (NO CELULAR FICA ABAIXO DA TABELA) */}
+      <section className="panel p-3 md:p-4 order-3 lg:order-none lg:col-start-1 lg:row-start-2">
+        {evento ? (
+          <div className="mt-4" aria-live="polite">
+            <h3 className="text-lg font-black">{evento.titulo}</h3>
+            <p className="mt-1 text-xs text-muted-foreground">{evento.texto}</p>
+
+            {sorteio ? (
+              <div className="mt-3">
+                {!sorteio.terminou ? (
+                  <div className="flex h-20 items-center justify-center rounded-lg border border-border bg-card px-3 text-center">
+                    <p className="text-xs font-bold text-muted-foreground">Avaliando a cena...</p>
+                  </div>
+                ) : (
+                  <div className={`rounded-lg border-2 p-3 ${sorteio.ok ? "border-success bg-success/10" : "border-destructive bg-destructive/10"}`}>
+                    <div className="flex items-center justify-between">
+                      <span className={`text-sm font-black ${sorteio.ok ? "text-success" : "text-destructive"}`}>
+                        {sorteio.ok ? "DEU BOM" : "DEU RUIM"}
+                      </span>
+                      <span className={`text-base font-black ${sorteio.ok ? "text-success" : "text-destructive"}`}>
+                        {sorteio.ok ? `OVR +${evento.proposta.bom.delta}` : `OVR ${evento.proposta.ruim.delta}`}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs font-bold text-foreground">
+                      {sorteio.ok ? evento.proposta.bom.texto : evento.proposta.ruim.texto}
+                    </p>
+                    {!sorteio.ok && evento.proposta.ruim.suspensaoAnos && (
+                      <p className="mt-1 text-[11px] font-bold text-destructive">
+                        ⚠️ Suspenso por {evento.proposta.ruim.suspensaoAnos} ano.
+                      </p>
+                    )}
+                    <button
+                      onClick={() => {
+                        setEvento(null);
+                        setSorteio(null);
+                      }}
+                      className="mt-3 w-full rounded-lg bg-foreground px-3 py-2 text-xs font-bold text-background"
+                    >
+                      Continuar
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="mt-3 grid gap-2">
+                <button
+                  onClick={() => responderEvento(true)}
+                  className="card p-2.5 text-left transition hover:border-primary"
+                >
+                  <span className="block font-black text-sm">{evento.proposta.acao}</span>
+                  <span className="mt-0.5 block text-[11px] font-bold text-muted-foreground">
+                    {Math.round(evento.proposta.chance * 100)}% de chance
+                  </span>
+                  <div className="mt-1.5 flex flex-wrap gap-1.5 text-[11px] font-black">
+                    <span className="rounded bg-success/15 px-1.5 py-0.5 text-success">
+                      Bom: +{evento.proposta.bom.delta}
+                    </span>
+                    <span className="rounded bg-destructive/15 px-1.5 py-0.5 text-destructive">
+                      Ruim: {evento.proposta.ruim.delta}
+                      {evento.proposta.ruim.suspensaoAnos ? ` + Suspensão` : ""}
+                    </span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => responderEvento(false)}
+                  className="card p-2.5 text-left text-xs font-bold text-muted-foreground hover:text-foreground"
+                >
+                  Não fazer nada <span className="text-[10px] opacity-75">— sem risco</span>
+                </button>
+              </div>
+            )}
+          </div>
+        ) : estaSuspenso ? (
+          <div className="mt-4 rounded-lg border border-destructive/40 bg-destructive/10 p-3">
+            <h3 className="text-sm font-black text-destructive">Suspenso neste ano</h3>
+            <p className="mt-0.5 text-xs text-foreground">
+              Impedido de disputar batalhas por 1 temporada. {p.status ? `Motivo: ${p.status}.` : ""}
+            </p>
+            <button onClick={pularAno} className="btn-main mt-3 w-full text-xs">
+              Cumprir suspensão este ano
+            </button>
+          </div>
+        ) : (
+          <div className="mt-1">
+            <h3 className="text-sm sm:text-base font-black">Escolha sua batalha do ano</h3>
+            <p className="text-[10px] sm:text-[11px] text-muted-foreground">Ao escolher, a temporada inteira é simulada de uma vez.</p>
+            <div className="mt-2 grid gap-1">
+              {ofertas.map((b) => {
+                const ehAtual = b.nome === p.batalhaAtualNome;
+                return (
+                  <button
+                    key={b.id}
+                    onClick={() => escolherBatalha(b)}
+                    className={`card flex items-center justify-between p-2 sm:p-2.5 text-left transition ${b.mudancaEstado
+                      ? "border-amber-500/70 bg-amber-500/10 hover:border-amber-500"
+                      : ehAtual
+                        ? "border-primary bg-primary/10"
+                        : ""
+                      }`}
+                  >
+                    <div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-xs sm:text-sm font-black">{b.nome}</span>
+                        {ehAtual && (
+                          <span className="rounded bg-primary px-1.5 py-0.2 text-[9px] font-bold text-primary-foreground">
+                            Sua batalha atual
+                          </span>
+                        )}
+                        {b.mudancaEstado && (
+                          <span className="rounded bg-amber-500/25 text-amber-300 border border-amber-500/50 px-1.5 py-0.2 text-[9px] font-bold">
+                            ✈️ Mudar para {b.uf}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                        {b.uf && <img src={flag(b.uf)} alt={b.uf} className="h-2.5 w-4 object-cover rounded-sm inline-block" />}
+                        <span>{b.uf || p.uf}</span>
+                      </div>
+                    </div>
+                    <span className={`rounded px-2 py-0.5 text-xs font-black ${b.nivel > p.ovr ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>
+                      NV {b.nivel}
+                    </span>
+                  </button>
+                );
+              })}
+              <button onClick={pularAno} className="mt-1 text-xs text-muted-foreground underline hover:text-foreground">
+                Não rimar neste ano
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
+
       {/* TABELA DE HISTÓRICO */}
-      <section className="panel overflow-x-auto p-3 md:p-4">
-        <table className="w-full text-xs md:text-sm">
+      <section
+        ref={tabelaRef}
+        className="panel overflow-x-auto max-h-[28vh] overflow-y-auto lg:max-h-none lg:overflow-y-visible p-2.5 sm:p-3 md:p-4 order-2 lg:order-none lg:col-start-2 lg:row-start-1 lg:row-span-2"
+      >
+        <table className="w-full text-[10px] sm:text-xs md:text-sm">
           <thead>
-            <tr className="text-left text-[10px] font-bold text-muted-foreground">
-              <th className="pb-2">IDADE</th>
-              <th>BATALHA DO ANO</th>
-              <th className="text-center">OVR</th>
-              <th className="text-center">BATALHAS</th>
-              <th className="text-center">TWOLALAS</th>
-              <th className="text-center">FOLINHAS</th>
-              <th className="text-center">TAÇAS</th>
+            <tr className="text-left text-[9px] sm:text-[10px] font-bold text-muted-foreground">
+              <th className="pb-1.5 px-1.5">IDADE</th>
+              <th className="pb-1.5 px-1.5">BATALHA DO ANO</th>
+              <th className="pb-1.5 px-1.5 text-center">OVR</th>
+              <th className="pb-1.5 px-1.5 text-center">BATALHAS</th>
+              <th className="pb-1.5 px-1.5 text-center">TWOLALAS</th>
+              <th className="pb-1.5 px-1.5 text-center">FOLINHAS</th>
+              <th className="pb-1.5 px-1.5 text-center">TAÇAS</th>
             </tr>
           </thead>
           <tbody>
             {idades.map((i) => {
               const h = p.historico.find((x) => x.idade === i) ?? (i === p.idade ? atual : null);
+              const animando = i === anoAnimando;
               return (
-                <tr key={i} className={i === p.idade ? "bg-secondary" : ""}>
-                  <td className="py-1 pl-1 font-bold text-muted-foreground">{i}</td>
+                <tr
+                  key={i}
+                  ref={i === p.idade ? linhaAtualRef : undefined}
+                  className={`transition-colors duration-500 ${animando ? "bg-primary/20 animate-pulse" : i === p.idade ? "bg-secondary" : ""
+                    }`}
+                >
+                  <td className="py-1 px-1.5 font-bold text-muted-foreground">{i}</td>
                   {h ? (
                     <>
                       <td className="py-1 pr-2 font-bold">
@@ -1233,10 +1306,10 @@ function Jogo({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 md:p-4 backdrop-blur-sm">
           <div
             className={`panel max-w-md w-full p-4 md:p-5 animate-in fade-in zoom-in-95 duration-200 border-2 ${circuitoModal.etapa === "estadual"
-                ? "border-amber-500 bg-amber-950/20 shadow-[0_0_25px_rgba(245,158,11,0.2)]"
-                : circuitoModal.etapa === "regional"
-                  ? "border-sky-500 bg-sky-950/20"
-                  : "border-primary"
+              ? "border-amber-500 bg-amber-950/20 shadow-[0_0_25px_rgba(245,158,11,0.2)]"
+              : circuitoModal.etapa === "regional"
+                ? "border-sky-500 bg-sky-950/20"
+                : "border-primary"
               }`}
           >
             <div className="flex items-center justify-between border-b border-border pb-2.5">
@@ -1247,10 +1320,10 @@ function Jogo({
                 <div>
                   <span
                     className={`text-[9px] font-sans font-bold uppercase tracking-widest ${circuitoModal.etapa === "estadual"
-                        ? "text-amber-400"
-                        : circuitoModal.etapa === "regional"
-                          ? "text-sky-400"
-                          : "text-primary"
+                      ? "text-amber-400"
+                      : circuitoModal.etapa === "regional"
+                        ? "text-sky-400"
+                        : "text-primary"
                       }`}
                   >
                     Circuito do Nacional ·{" "}
@@ -1268,10 +1341,10 @@ function Jogo({
 
               <span
                 className={`rounded px-2 py-0.5 font-sans text-[11px] font-bold ${circuitoModal.etapa === "estadual"
-                    ? "bg-amber-500/20 text-amber-300"
-                    : circuitoModal.etapa === "regional"
-                      ? "bg-sky-500/20 text-sky-300"
-                      : "bg-primary/20 text-primary"
+                  ? "bg-amber-500/20 text-amber-300"
+                  : circuitoModal.etapa === "regional"
+                    ? "bg-sky-500/20 text-sky-300"
+                    : "bg-primary/20 text-primary"
                   }`}
               >
                 NV {circuitoModal.nivel}
@@ -1313,10 +1386,10 @@ function Jogo({
                     <div
                       key={f.nome}
                       className={`animate-in fade-in slide-in-from-bottom-2 duration-200 rounded p-2 text-xs border ${aindaRimando
-                          ? "border-border bg-card animate-pulse"
-                          : f.passou
-                            ? "border-success/40 bg-success/10"
-                            : "border-destructive/40 bg-destructive/10"
+                        ? "border-border bg-card animate-pulse"
+                        : f.passou
+                          ? "border-success/40 bg-success/10"
+                          : "border-destructive/40 bg-destructive/10"
                         }`}
                     >
                       <div className="flex items-center justify-between font-bold">
@@ -1346,10 +1419,10 @@ function Jogo({
                     {circuitoModal.campeao ? (
                       <div
                         className={`rounded-lg p-3 text-center border ${circuitoModal.etapa === "estadual"
-                            ? "border-amber-500 bg-amber-500/20 text-amber-200"
-                            : circuitoModal.etapa === "regional"
-                              ? "border-sky-500 bg-sky-500/20 text-sky-200"
-                              : "border-primary bg-primary/20 text-foreground"
+                          ? "border-amber-500 bg-amber-500/20 text-amber-200"
+                          : circuitoModal.etapa === "regional"
+                            ? "border-sky-500 bg-sky-500/20 text-sky-200"
+                            : "border-primary bg-primary/20 text-foreground"
                           }`}
                       >
                         <span className="text-xl">🏆</span>
@@ -1538,11 +1611,10 @@ function Jogo({
                       {roundsRevelados.map((r) => (
                         <div
                           key={r.numero}
-                          className={`animate-in fade-in slide-in-from-bottom-2 duration-200 rounded-lg p-2 text-xs border ${
-                            r.venceu
-                              ? "border-success/40 bg-success/10 text-success-foreground"
-                              : "border-destructive/40 bg-destructive/10 text-destructive-foreground"
-                          }`}
+                          className={`animate-in fade-in slide-in-from-bottom-2 duration-200 rounded-lg p-2 text-xs border ${r.venceu
+                            ? "border-success/40 bg-success/10 text-success-foreground"
+                            : "border-destructive/40 bg-destructive/10 text-destructive-foreground"
+                            }`}
                         >
                           <div className="flex items-center justify-between font-black text-[11px] mb-0.5">
                             <span>
