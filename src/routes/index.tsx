@@ -92,7 +92,18 @@ function App() {
 }
 
 function Logo({ small }: { small?: boolean }) {
-  return <img src={logo.url} alt="rimero." className={small ? "h-10 w-auto md:h-12" : "h-48 w-auto md:h-64"} />;
+  return (
+    <img
+      src={logo.url}
+      alt="rimero."
+      onError={(e) => {
+        if (!e.currentTarget.src.endsWith("/rimero-logo.svg")) {
+          e.currentTarget.src = "/rimero-logo.svg";
+        }
+      }}
+      className={small ? "h-10 w-auto md:h-12" : "h-48 w-auto md:h-64"}
+    />
+  );
 }
 
 function Inicio({ onStart, onNew, temCarreira }: { onStart: () => void; onNew: () => void; temCarreira: boolean }) {
