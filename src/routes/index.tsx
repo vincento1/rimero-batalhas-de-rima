@@ -286,6 +286,8 @@ function Jogo({
   });
   const [mostrarVelocidade, setMostrarVelocidade] = useState(false);
   const [anoAnimando, setAnoAnimando] = useState<number | null>(null);
+  // Bloqueia cliques em batalhas enquanto o ano está sendo processado
+  const [jogando, setJogando] = useState(false);
 
   const timerRef = useRef<number | null>(null);
   const animIntervalRef = useRef<number | null>(null);
@@ -404,6 +406,9 @@ function Jogo({
   }
 
   function jogar(b: Battle, playerCustom?: Player) {
+    // Bloqueia novos cliques durante o processamento do ano
+    if (jogando) return;
+    setJogando(true);
     // Limpa qualquer proposta externa pendente do ano anterior
     setPropostaExterna(null);
     const pl = playerCustom ?? p;
@@ -431,7 +436,8 @@ function Jogo({
 
     if (checagem.chamado) {
       const simulacao = simularFasesTorneio(novoOvr, checagem.nivelSeletiva);
-      setMsg(textoTemporada);
+      // Avisa que tem seletiva logo abaixo da mensagem de temporada
+      setMsg(`${textoTemporada}\n🏆 Você foi convocado para a Seletiva!`);
       setAnoAnimando(pl.idade);
       window.setTimeout(() => setAnoAnimando(null), 1400);
       setP({
@@ -454,6 +460,7 @@ function Jogo({
           concluida: false,
           anoPendente: ano,
         });
+        setJogando(false);
       }, 1800);
       return;
     }
@@ -472,11 +479,12 @@ function Jogo({
       });
       window.setTimeout(() => {
         setPropostaExterna({ prop: propExterna, anoPendente: ano });
+        setJogando(false);
       }, 1800);
       return;
     }
 
-    const msgFinal = checagem.temSeletiva ? `${textoTemporada} ${checagem.motivo}` : textoTemporada;
+    const msgFinal = textoTemporada;
     setMsg(msgFinal);
     setAnoAnimando(pl.idade);
     window.setTimeout(() => setAnoAnimando(null), 1400);
@@ -487,9 +495,11 @@ function Jogo({
       historico: [...pl.historico.filter((h) => h.idade !== pl.idade), ano],
       log: [msgFinal, ...pl.log].slice(0, 30),
     });
+    setJogando(false);
   }
 
   function escolherBatalha(b: Battle) {
+    if (jogando) return;
     if (b.mudancaEstado && b.uf !== p.uf) {
       setPropostaMudancaEstado(b);
       return;
@@ -1046,11 +1056,6 @@ function Jogo({
                   })}
                 </div>
               )}
-              {p.status && (
-                <span className="mt-1 inline-block truncate max-w-full rounded bg-destructive/20 px-1.5 py-0.5 text-[10px] font-bold text-destructive">
-                  {p.status}
-                </span>
-              )}
               {p.vacilosBatalhaAtual > 0 && p.batalhaAtualNome && (
                 <span className="ml-1 mt-1 inline-block rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-300">
                   Atrito com {p.batalhaAtualNome}: {p.vacilosBatalhaAtual}/3
@@ -1206,7 +1211,8 @@ function Jogo({
                   <button
                     key={b.id}
                     onClick={() => escolherBatalha(b)}
-                    className={`card flex items-center justify-between p-2 sm:p-2.5 text-left transition ${b.mudancaEstado
+                    disabled={jogando}
+                    className={`card flex items-center justify-between p-2 sm:p-2.5 text-left transition disabled:opacity-40 disabled:cursor-not-allowed ${b.mudancaEstado
                       ? "border-amber-500/70 bg-amber-500/10 hover:border-amber-500"
                       : ehAtual
                         ? "border-primary bg-primary/10"

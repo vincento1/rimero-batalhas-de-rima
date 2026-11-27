@@ -182,7 +182,7 @@ export const BATALHAS_CONSOLIDADAS: BatalhaConsolidada[] = [
     "estado": "Distrito Federal",
     "uf": "DF",
     "reputacao": "Nacional",
-    "nivelBase": 91
+    "nivelBase": 87
   },
   {
     "nome": "Batalha da Cobertura",
@@ -966,7 +966,7 @@ export const BATALHAS_CONSOLIDADAS: BatalhaConsolidada[] = [
     "estado": "Rio de Janeiro",
     "uf": "RJ",
     "reputacao": "Nacional",
-    "nivelBase": 90
+    "nivelBase": 86
   },
   {
     "nome": "Batalha do Blindado",
@@ -974,7 +974,7 @@ export const BATALHAS_CONSOLIDADAS: BatalhaConsolidada[] = [
     "estado": "Rio de Janeiro",
     "uf": "RJ",
     "reputacao": "Nacional",
-    "nivelBase": 88
+    "nivelBase": 84
   },
   {
     "nome": "Batalha do Beco Central",
@@ -1342,7 +1342,7 @@ export const BATALHAS_CONSOLIDADAS: BatalhaConsolidada[] = [
     "estado": "São Paulo",
     "uf": "SP",
     "reputacao": "Nacional",
-    "nivelBase": 92
+    "nivelBase": 87
   },
   {
     "nome": "Batalha da Gruta",
