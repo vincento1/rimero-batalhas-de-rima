@@ -107,10 +107,24 @@ const BATALHAS_GENERICAS_NOMES = [
   "Duelo da Passarela",
 ];
 
+/**
+ * Bônus de nível aplicado às batalhas conforme OVR do MC.
+ * Cresce devagar no início, mais rápido no alto nível.
+ * Nunca deixa o nivel ultrapassar 94 (evita quebrar o jogo no nível 99).
+ */
+function bonusNivelPorOvr(ovr: number): number {
+  if (ovr <= 60) return 0;
+  if (ovr <= 70) return Math.floor((ovr - 60) * 0.4);   // até +4
+  if (ovr <= 80) return 4 + Math.floor((ovr - 70) * 0.7); // até +11
+  if (ovr <= 90) return 11 + Math.floor((ovr - 80) * 1.0); // até +21
+  return 21 + Math.floor((ovr - 90) * 0.6);             // cresce menos em 91-99 (até +27 no 99 → cap em 94 segura)
+}
+
 export function convites(p: Player): Battle[] {
   const est = ESTADOS.find((e) => e[0] === p.uf)?.[1] ?? p.uf;
   const lista: Battle[] = [];
   const nomesNaLista = new Set<string>();
+  const bonus = bonusNivelPorOvr(p.ovr);
 
   // 1. Se o MC tem uma batalha atual e não foi banido dela, ela fica como primeira opção
   if (p.batalhaAtualNome && !p.batalhasBanidas.includes(p.batalhaAtualNome)) {
@@ -150,10 +164,11 @@ export function convites(p: Player): Battle[] {
   }));
 
   // Pool local unindo as oficiais do estado e genéricas (filtrando por compatibilidade de OVR)
+  // O bônus escala o nível das batalhas junto com o MC, sem deixar ultrapassar 94
   const oficiaisMapeadas: Battle[] = batalhasDoEstado.map((b) => ({
     id: `oficial-${b.nome}`,
     nome: b.nome,
-    nivel: clamp(b.nivelBase + r(-2, 2), 38, 92),
+    nivel: clamp(b.nivelBase + bonus + r(-2, 2), 38, 94),
     local: `${b.cidade}, ${b.uf}`,
     uf: b.uf,
     reputacao: b.reputacao,
@@ -193,7 +208,7 @@ export function convites(p: Player): Battle[] {
       lista.push({
         id: `externa-${escolhida.nome}`,
         nome: escolhida.nome,
-        nivel: clamp(escolhida.nivelBase + r(-1, 2), 40, 94),
+        nivel: clamp(escolhida.nivelBase + bonus + r(-1, 2), 40, 94),
         local: `${escolhida.cidade}, ${escolhida.uf}`,
         uf: escolhida.uf,
         reputacao: escolhida.reputacao,
@@ -210,7 +225,7 @@ export function convites(p: Player): Battle[] {
       lista.push({
         id: Math.random().toString(36).slice(2),
         nome: nomeFallback,
-        nivel: clamp(p.ovr + r(-3, 3), 36, 85),
+        nivel: clamp(p.ovr + r(-3, 3), 36, 94),
         local: `${est} (Local)`,
         uf: p.uf,
       });
@@ -449,11 +464,42 @@ export type PropostaExterna = {
 };
 
 export function sortearPropostaExterna(p: Player, bAtual: Battle): PropostaExterna | null {
-  if (Math.random() > 0.35) return null;
-  const nomesVizinhos = ["Batalha da Cohab", "Roda do Interior", "Duelo do Bairro", "Batalha da Quadra", "Roda da Esquina"];
-  const nome = pick(nomesVizinhos.filter((n) => n !== bAtual.nome));
-  const nivel = clamp(p.ovr - r(3, 7), 38, 75);
-  return { batalhaNome: nome, nivel };
+  // Propostas externas só para MCs de alto nível (OVR >= 85)
+  if (p.ovr < 85) return null;
+
+  // Para MCs de elite: chance maior e até 2 propostas (retorna a melhor)
+  const baseChance = 0.60 + clamp((p.ovr - 85) * 0.015, 0, 0.20); // 60% a 80%
+  if (Math.random() > baseChance) return null;
+
+  // Nomes de batalhas reconhecidas que convocam MCs de elite
+  const nomesElite = [
+    "Batalha do Coliseu",
+    "Roda dos Escolhidos",
+    "Duelo da Elite",
+    "Batalha Interestadual",
+    "Seletiva Aberta do Norte",
+    "Desafio dos Pesos Pesados",
+    "Batalha Convite Nacional",
+  ];
+  const candidatos = nomesElite.filter((n) => n !== bAtual.nome);
+
+  // Para OVR >= 93 pode vir até 2 propostas – retorna sempre a melhor (maior nível)
+  const qtd = p.ovr >= 93 ? 2 : 1;
+  const escolhidos: PropostaExterna[] = [];
+  const usados = new Set<string>();
+  for (let i = 0; i < qtd; i++) {
+    const disponiveis = candidatos.filter((n) => !usados.has(n));
+    if (disponiveis.length === 0) break;
+    const nome = pick(disponiveis);
+    usados.add(nome);
+    // Nível um pouco abaixo do OVR do MC para ser desafiador mas não impossível
+    const nivel = clamp(p.ovr - r(2, 5), 70, 92);
+    escolhidos.push({ batalhaNome: nome, nivel });
+  }
+
+  if (escolhidos.length === 0) return null;
+  // Retorna a proposta com maior nível (mais prestígio)
+  return escolhidos.reduce((best, cur) => (cur.nivel > best.nivel ? cur : best));
 }
 
 /**

@@ -393,7 +393,10 @@ function Jogo({
       return;
     }
     setP(next);
-    setOfertas(convites(next));
+    // Aguarda a animação dos números terminar antes de mostrar as novas ofertas
+    window.setTimeout(() => {
+      setOfertas(convites(next));
+    }, 2300);
     if (Math.random() < 0.2) {
       setSorteio(null);
       setEvento(sortearEvento());
@@ -401,6 +404,8 @@ function Jogo({
   }
 
   function jogar(b: Battle, playerCustom?: Player) {
+    // Limpa qualquer proposta externa pendente do ano anterior
+    setPropostaExterna(null);
     const pl = playerCustom ?? p;
     const res = batalhar(pl, b);
     const novoOvr = Math.max(30, Math.min(99, pl.ovr + res.ganho));
